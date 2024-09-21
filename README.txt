@@ -1,6 +1,9 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/e__G6ZpK)
-[![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=15954468)
-Starter Code for Reaction Timer 
-Run npm install to install all dependencies 
-The above uses package.json to build the project
-Note .gitignore is set to ignore node_modules
+Reaction Time Test README
+
+The reaction time measures the time it takes once button turns red till button is clicked and outputs that time with name.
+A time between 2s and 7s is randomly generated to represent the time it will take for button to turn red from the time it is pressed.
+If clicked before it turns red, a message will pop up and user has to wait 30s to restart the test.
+The top 10 times are saved on the webserver and output to the website in a list.
+It utilizes a variety of functions encoded in the script of the html page, as well as post method to send information back to server.
+The codes (html & js) contain comments to help understand the logic.
+Generative AI (ChatGPT) was used to assist in understanding the structure and functions required to complete this assignment.

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction Time Test</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+        }
+        #reactionButton {
+            padding: 20px 40px;
+            font-size: 24px;
+            background-color: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #nameInput {
+            padding: 10px;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        #instructionMessage {
+            margin-top: 10px;
+            font-size: 18px;
+            display: none;
+        }
+        #penaltyMessage {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+        #resultsList {
+            margin-top: 20px;
+            list-style-type: none;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Reaction Time Test</h1>
+<input type="text" id="nameInput" placeholder="Enter your name" />
+<button id="reactionButton">Start Test</button>
+<p id="result"></p>
+<p id="instructionMessage">Wait for the button to turn red and click it!</p>
+<p id="penaltyMessage"></p>
+
+<h2>Top Reaction Times</h2>
+<ul id="resultsList"></ul>
+
+<script>
+    let startTime, endTime;
+    let userName = '';
+    let penaltyTimeout = null; // To track penalty state
+    let testActive = false; // To track if a test is currently active
+
+    document.getElementById('nameInput').addEventListener('input', function() {
+        userName = this.value; // Capture user's name
+    });
+
+    document.getElementById('reactionButton').addEventListener('click', function() {
+        if (penaltyTimeout) {
+            showPenaltyMessage("You must wait before trying again.");
+            return;
+        }
+        
+        if (this.textContent === "Start Test") {
+            startTest();
+        } else if (this.style.backgroundColor === 'red') {
+            endTest();
+        } else {
+            showPenaltyMessage("Please wait for the button to turn red before clicking.");
+            startPenalty();
+            this.textContent = "Start Test"; // Keep button text consistent
+            return; // Exit to prevent further actions
+        }
+    });
+
+    function startTest() {
+        if (!userName) {
+            alert("Please enter your name before starting.");
+            return;
+        }
+
+        testActive = true; // Set test active flag
+        document.getElementById('result').textContent = '';
+        //document.getElementById('penaltyMessage').style.display = 'none'; // Hide penalty message
+        document.getElementById('instructionMessage').style.display = 'block'; // Show instruction message
+        document.getElementById('reactionButton').style.backgroundColor = 'green';
+        document.getElementById('reactionButton').textContent = "Wait for it...";
+
+        // Wait for a random time before changing to red
+        const waitTime = Math.floor(Math.random() * 5000) + 2000; // Between 2-7 seconds
+        setTimeout(() => {
+            if (testActive) { // Check if test is still active
+                document.getElementById('reactionButton').style.backgroundColor = 'red';
+                document.getElementById('reactionButton').textContent = "Click Now!";
+                startTime = new Date().getTime(); // Record start time when it turns red
+            }
+        }, waitTime);
+    }
+
+    function endTest() {
+        testActive = false; // Reset test active flag
+        endTime = new Date().getTime();
+        const reactionTime = endTime - startTime; // Calculate reaction time
+
+        // Show result
+        document.getElementById('result').textContent = `${userName}, your reaction time is ${reactionTime} ms.`;
+        
+        // Add result to the results array on the server
+        submitResult(userName, reactionTime);
+
+        document.getElementById('instructionMessage').style.display = 'none'; // Hide instruction message
+        //document.getElementById('penaltyMessage').style.display = 'none'; // Hide penalty message
+        document.getElementById('reactionButton').style.backgroundColor = 'green';
+        document.getElementById('reactionButton').textContent = "Start Test"; // Reset button for new test
+    }
+
+    function submitResult(name, time) {
+        fetch('/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, time }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            updateResultsList(data);
+        });
+    }
+
+    function updateResultsList(results) {
+        // Update the displayed results list
+        const resultsList = document.getElementById('resultsList');
+        resultsList.innerHTML = ''; // Clear previous list
+        results.forEach((result, index) => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${index + 1}. ${result.name}: ${result.time} ms`;
+            resultsList.appendChild(listItem);
+        });
+    }
+
+    function showPenaltyMessage(message) {
+        document.getElementById('penaltyMessage').textContent = message;
+        document.getElementById('penaltyMessage').style.display = 'block';
+
+        document.getElementById('instructionMessage').style.display = 'none'; // Hide instruction message
+
+    }
+
+    function startPenalty() {
+        testActive = false; // Ensure test is inactive during penalty
+        penaltyTimeout = setTimeout(() => {
+            penaltyTimeout = null; // Reset penalty state after 30 seconds
+            showPenaltyMessage(""); // Clear penalty message
+            //document.getElementById('reactionButton').textContent = "Start Test"; // Keep button text consistent
+            //document.getElementById('reactionButton').style.backgroundColor = 'green'; // Keep button color
+        }, 30000); // 30 seconds penalty
+    }
+</script>
+
+</body>
+</html>
